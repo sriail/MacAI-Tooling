@@ -17,8 +17,8 @@ server:
   secret_key: "changeme-use-a-long-random-secret"
   # Image proxy is optional; disable if not needed.
   image_proxy: false
-  # Listen on port 8888.
-  port: 8888
+  # Listen on port 8080.
+  port: 8080
 
 search:
   # Expose all three output formats: html, csv, and json.

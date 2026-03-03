@@ -2,7 +2,7 @@
 # This allows all clients (including AI agents and scripts) to make
 # unlimited JSON API requests without being throttled or blocked.
 
-[ip]
+[real_ip]
 # If SearXNG is behind a reverse-proxy, set the trusted proxy IP(s) so that
 # the real client IP is correctly identified.  Leave blank when SearXNG is
 # directly exposed.

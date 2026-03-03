@@ -4,14 +4,14 @@ services:
     container_name: searxng
     restart: unless-stopped
     ports:
-      - "${SEARXNG_PORT:-8888}:8888"
+      - "${SEARXNG_PORT:-8080}:8080"
     volumes:
       - ./searxng:/etc/searxng:rw
     environment:
-      - SEARXNG_BASE_URL=${SEARXNG_BASE_URL:-http://localhost:8888/}
+      - SEARXNG_BASE_URL=${SEARXNG_BASE_URL:-http://localhost:8080/}
       - SEARXNG_SECRET_KEY=${SEARXNG_SECRET_KEY:-changeme-use-a-long-random-secret}
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8888/healthz"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5
