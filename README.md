@@ -8,6 +8,8 @@ A collection of Docker-based tools for the MacAI project.
 
 This repository ships a ready-to-run [SearXNG](https://docs.searxng.org/) container configured for **unlimited, unauthenticated JSON API responses** so that AI agents and scripts can query the metasearch engine programmatically without hitting rate limits.
 
+The container runs as a **single service on port 8888** — no Redis dependency, no cap manipulation — for maximum compatibility with CodeSandbox and other constrained hosting environments.
+
 ### Quick Start
 
 ```bash
@@ -19,14 +21,14 @@ cp .env.example .env
 # 2. Make the wake-up script executable (one-time setup).
 chmod +x wake.sh
 
-# 3. Start SearXNG (and the companion Redis cache).
+# 3. Start SearXNG.
 docker compose up -d
 
 # 4. Verify it is running.
 docker compose ps
 ```
 
-SearXNG will be available at **http://localhost:8080** (or the port you set in `.env`).
+SearXNG will be available at **http://localhost:8888** (or the port you set in `.env`).
 
 ---
 
@@ -38,24 +40,24 @@ sending real search queries.  It backs off exponentially so the server is not
 hammered while it starts, and exits as soon as it gets a `2xx/3xx` response.
 
 ```bash
-# Wake up the default instance (http://localhost:8080).
+# Wake up the default instance (http://localhost:8888).
 ./wake.sh
 
 # Then fire your real search — the server is guaranteed to be ready.
-curl "http://localhost:8080/search?q=openai&format=json"
+curl "http://localhost:8888/search?q=openai&format=json"
 ```
 
-**From inside another container on the same network:**
+**From inside another container on the same Docker network:**
 
 ```bash
-SEARXNG_BASE_URL=http://searxng:8080/ ./wake.sh
+SEARXNG_BASE_URL=http://searxng:8888/ ./wake.sh
 ```
 
 **Environment variables:**
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `SEARXNG_BASE_URL` | `http://localhost:8080` | Base URL to ping |
+| `SEARXNG_BASE_URL` | `http://localhost:8888` | Base URL to ping |
 | `WAKE_MAX_WAIT` | `60` | Maximum seconds to wait before giving up |
 
 > **How it works:** The script sends a `HEAD /healthz` request (just response
@@ -71,16 +73,16 @@ Append `format=json` to any search request:
 
 ```bash
 # Basic JSON search
-curl "http://localhost:8080/search?q=openai&format=json"
+curl "http://localhost:8888/search?q=openai&format=json"
 
 # Paginate results (page 2)
-curl "http://localhost:8080/search?q=openai&format=json&pageno=2"
+curl "http://localhost:8888/search?q=openai&format=json&pageno=2"
 
 # Filter by category
-curl "http://localhost:8080/search?q=openai&format=json&categories=general"
+curl "http://localhost:8888/search?q=openai&format=json&categories=general"
 
 # Filter by language
-curl "http://localhost:8080/search?q=openai&format=json&language=en-US"
+curl "http://localhost:8888/search?q=openai&format=json&language=en-US"
 ```
 
 **Example JSON response shape:**
@@ -110,10 +112,10 @@ curl "http://localhost:8080/search?q=openai&format=json&language=en-US"
 
 | File | Purpose |
 |---|---|
-| `docker-compose.yml` | Service definitions (SearXNG + Redis) |
-| `searxng/settings.yml` | SearXNG settings – JSON format enabled, rate limiter off |
+| `docker-compose.yml` | Single SearXNG service definition (port 8888) |
+| `searxng/settings.yml` | SearXNG settings – JSON format enabled, rate limiter off, port 8888 |
 | `searxng/limiter.toml` | Bot-detection / rate-limit rules (all disabled) |
-| `searxng/uwsgi.ini` | uWSGI worker configuration |
+| `searxng/uwsgi.ini` | uWSGI worker configuration (bound to :8888) |
 | `wake.sh` | Ping script to wake SearXNG from CodeSandbox auto-sleep |
 | `.env.example` | Environment variable template |
 
@@ -123,6 +125,7 @@ curl "http://localhost:8080/search?q=openai&format=json&language=en-US"
 # searxng/settings.yml
 server:
   limiter: false        # disables the built-in rate limiter
+  port: 8888
 
 search:
   formats:
@@ -134,36 +137,7 @@ search:
 ```toml
 # searxng/limiter.toml
 [botdetection.ip_limit]
-enabled = false         # disables per-IP request throttling
-
-[botdetection.ip_lists]
-enabled = false         # disables IP block-list enforcement
-```
-
----
-
-### Sharing the Docker Network with Other Containers
-
-All services on the same VM can reach SearXNG via the shared `macai-net` bridge network.  Add your existing services to the same network in their own `docker-compose.yml`:
-
-```yaml
-# In another service's docker-compose.yml
-services:
-  my-service:
-    image: my-image
-    networks:
-      - macai-net
-
-networks:
-  macai-net:
-    external: true      # reuse the network created by this repo
-    name: macai-net
-```
-
-Then call SearXNG by its container name from within the network:
-
-```
-http://searxng:8080/search?q=hello&format=json
+link_token = false      # disables link-token requirement for search requests
 ```
 
 ---

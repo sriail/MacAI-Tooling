@@ -18,7 +18,7 @@
 set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-BASE_URL="${1:-${SEARXNG_BASE_URL:-http://localhost:8080}}"
+BASE_URL="${1:-${SEARXNG_BASE_URL:-http://localhost:8888}}"
 # Strip trailing slash for consistency.
 BASE_URL="${BASE_URL%/}"
 
