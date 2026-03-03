@@ -16,14 +16,52 @@ cp .env.example .env
 # Edit .env and replace SEARXNG_SECRET_KEY with a random value:
 #   openssl rand -hex 32
 
-# 2. Start SearXNG (and the companion Redis cache).
+# 2. Make the wake-up script executable (one-time setup).
+chmod +x wake.sh
+
+# 3. Start SearXNG (and the companion Redis cache).
 docker compose up -d
 
-# 3. Verify it is running.
+# 4. Verify it is running.
 docker compose ps
 ```
 
 SearXNG will be available at **http://localhost:8080** (or the port you set in `.env`).
+
+---
+
+### Wake-Up Ping (CodeSandbox Auto-Sleep)
+
+CodeSandbox pauses idle servers to save credits. Use `wake.sh` to send a
+single cheap `HEAD /healthz` request that wakes the sandbox up **before**
+sending real search queries.  It backs off exponentially so the server is not
+hammered while it starts, and exits as soon as it gets a `2xx/3xx` response.
+
+```bash
+# Wake up the default instance (http://localhost:8080).
+./wake.sh
+
+# Then fire your real search — the server is guaranteed to be ready.
+curl "http://localhost:8080/search?q=openai&format=json"
+```
+
+**From inside another container on the same network:**
+
+```bash
+SEARXNG_BASE_URL=http://searxng:8080/ ./wake.sh
+```
+
+**Environment variables:**
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SEARXNG_BASE_URL` | `http://localhost:8080` | Base URL to ping |
+| `WAKE_MAX_WAIT` | `60` | Maximum seconds to wait before giving up |
+
+> **How it works:** The script sends a `HEAD /healthz` request (just response
+> headers, no body) per attempt.  It starts with a 1-second delay and doubles
+> on each failure up to a 10-second cap, so a sleeping CodeSandbox that takes
+> ~20 s to resume costs only 3–4 tiny pings rather than a continuous poll.
 
 ---
 
@@ -76,6 +114,7 @@ curl "http://localhost:8080/search?q=openai&format=json&language=en-US"
 | `searxng/settings.yml` | SearXNG settings – JSON format enabled, rate limiter off |
 | `searxng/limiter.toml` | Bot-detection / rate-limit rules (all disabled) |
 | `searxng/uwsgi.ini` | uWSGI worker configuration |
+| `wake.sh` | Ping script to wake SearXNG from CodeSandbox auto-sleep |
 | `.env.example` | Environment variable template |
 
 #### Key settings that enable unlimited JSON responses
