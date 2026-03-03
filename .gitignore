@@ -1,0 +1,7 @@
+# .gitignore
+
+# Environment variable overrides – keep secrets out of version control.
+.env
+
+# Docker runtime artefacts.
+*.log

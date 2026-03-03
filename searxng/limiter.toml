@@ -1,0 +1,21 @@
+# Disable the SearXNG built-in rate limiter entirely.
+# This allows all clients (including AI agents and scripts) to make
+# unlimited JSON API requests without being throttled or blocked.
+
+[real_ip]
+# If SearXNG is behind a reverse-proxy, set the trusted proxy IP(s) so that
+# the real client IP is correctly identified.  Leave blank when SearXNG is
+# directly exposed.
+x_for = 1
+ipv4_prefix = 32
+ipv6_prefix = 128
+
+[botdetection.ip_limit]
+# Disable IP-based rate limiting.
+enabled = false
+# The values below are ignored when enabled=false but documented for reference.
+link_token = false
+
+[botdetection.ip_lists]
+# Disable block-list enforcement.
+enabled = false

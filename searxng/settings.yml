@@ -1,0 +1,54 @@
+# Use server.secret_key to sign cookies and tokens.
+# Must be a long random string. Override via the SEARXNG_SECRET_KEY env var.
+use_default_settings: true
+
+server:
+  # Base URL of the SearXNG instance.
+  # Override via the SEARXNG_BASE_URL env var.
+  base_url: false
+  # Bind address (inside the container; exposed via Docker port mapping).
+  bind_address: "0.0.0.0"
+  # Disable the rate limiter so all API clients can make unlimited requests.
+  limiter: false
+  # Allow requests without the X-Forwarded-For header being set (useful when
+  # SearXNG is directly reachable on the Docker network).
+  public_instance: false
+  # Secret key for cookies / HMAC tokens.  Set via env var in production.
+  secret_key: "changeme-use-a-long-random-secret"
+  # Image proxy is optional; disable if not needed.
+  image_proxy: false
+
+search:
+  # Expose all three output formats: html, csv, and json.
+  # The json format is what allows unlimited machine-readable responses.
+  formats:
+    - html
+    - json
+    - csv
+  # Allow paginating through as many pages of results as needed (0 = unlimited pages).
+  max_page: 0
+  # Default language – keep as "all" so no language filter is applied by default.
+  default_lang: "all"
+  # Never suspend engines that time out; keep retrying every request.
+  suspend_on_unavailable: false
+
+redis:
+  # Connect to the companion Redis container (defined in docker-compose.yml).
+  url: redis://searxng-redis:6379/0
+
+engines:
+  # All engines are inherited from the default settings.
+  # Override individual engines here if required.
+
+outgoing:
+  # Maximum number of requests per search (per engine).
+  max_request_timeout: 3.0
+  # Pool of upstream connections.
+  pool_connections: 100
+  pool_maxsize: 20
+
+ui:
+  # Show the API documentation link in the UI so developers can discover the endpoint.
+  query_in_title: false
+  infinite_scroll: true
+  default_theme: simple
