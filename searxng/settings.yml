@@ -32,13 +32,15 @@ search:
   # Never suspend engines that time out; keep retrying every request.
   suspend_on_unavailable: false
 
-redis:
-  # Connect to the companion Redis container (defined in docker-compose.yml).
+valkey:
+  # Connect to the companion Redis/Valkey container (defined in docker-compose.yml).
   url: redis://searxng-redis:6379/0
 
 engines:
-  # All engines are inherited from the default settings.
-  # Override individual engines here if required.
+  - name: ahmia
+    disabled: true
+  - name: torch
+    disabled: true
 
 outgoing:
   # Maximum number of requests per search (per engine).
