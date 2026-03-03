@@ -17,6 +17,8 @@ server:
   secret_key: "changeme-use-a-long-random-secret"
   # Image proxy is optional; disable if not needed.
   image_proxy: false
+  # Listen on port 8888.
+  port: 8888
 
 search:
   # Expose all three output formats: html, csv, and json.
@@ -31,10 +33,6 @@ search:
   default_lang: "all"
   # Never suspend engines that time out; keep retrying every request.
   suspend_on_unavailable: false
-
-valkey:
-  # Connect to the companion Redis/Valkey container (defined in docker-compose.yml).
-  url: redis://searxng-redis:6379/0
 
 engines:
   - name: ahmia
